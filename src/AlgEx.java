@@ -41,9 +41,8 @@ public class AlgEx {
         int sign;
         int curDif;
         int[] usedDifs = new int[6];
-        int[] search = new int[51];
-        int[][][] searchArrs = new int[51][2][];
-        int[][] searchArrsUsed = new int[51][];
+        int[] search = new int[27];
+        int[][][] searchArrs = new int[27][3][];
         int[] curArr;
         Queue<Integer> queue = new ArrayDeque<>();
         Arrays.fill(search, -1);
@@ -55,7 +54,7 @@ public class AlgEx {
         }
         curArr = (difSum > 0) ? positiveDifs : negativeDifs;
         sign = (difSum > 0) ? 1 : -1;
-        while (Math.abs(difSum) > 25) {
+        while (Math.abs(difSum) > 13) {
             for (tmpDif = 5; tmpDif >= 0 && curArr[tmpDif] == 0; tmpDif--) ;
             difSum -= 2 * (tmpDif + 1) * sign;
             curArr[tmpDif]--;
@@ -63,51 +62,47 @@ public class AlgEx {
             minFlips++;
         }
         queue.add(difSum);
-        search[25 + difSum] = minFlips;
-        searchArrs[25 + difSum][0] = positiveDifs.clone();
-        searchArrs[25 + difSum][1] = negativeDifs.clone();
+        search[13 + difSum] = minFlips;
+        searchArrs[13 + difSum][0] = positiveDifs.clone();
+        searchArrs[13 + difSum][1] = negativeDifs.clone();
+        searchArrs[13 + difSum][2] = usedDifs.clone();
         while (!queue.isEmpty()) {
             curDif = queue.poll();
             for (int i = 0; i < 6; i++) {
-                if (searchArrs[25 + curDif][0][i] > 0) {
+                if (searchArrs[13 + curDif][0][i] > 0) {
                     tmpDif = curDif - 2 * (i + 1);
-                    if (Math.abs(tmpDif) <= 25 && search[25 + tmpDif] == -1) {
-                        search[25 + tmpDif] = search[25 + curDif] + 1;
-                        searchArrs[25 + tmpDif][0] = searchArrs[25 + curDif][0].clone();
-                        searchArrs[25 + tmpDif][0][i]--;
-                        searchArrs[25 + tmpDif][1] = searchArrs[25 + curDif][1].clone();
+                    if (Math.abs(tmpDif) <= 13 && search[13 + tmpDif] == -1) {
+                        search[13 + tmpDif] = search[13 + curDif] + 1;
+                        searchArrs[13 + tmpDif][0] = searchArrs[13 + curDif][0].clone();
+                        searchArrs[13 + tmpDif][0][i]--;
+                        searchArrs[13 + tmpDif][1] = searchArrs[13 + curDif][1].clone();
+                        searchArrs[13 + tmpDif][2] = searchArrs[13 + curDif][2].clone();
                         queue.add(tmpDif);
                     }
                 }
             }
             for (int i = 0; i < 6; i++) {
-                if (searchArrs[25 + curDif][1][i] > 0) {
+                if (searchArrs[13 + curDif][1][i] > 0) {
                     tmpDif = curDif + 2 * (i + 1);
-                    if (Math.abs(tmpDif) <= 25 && search[25 + tmpDif] == -1) {
-                        search[25 + tmpDif] = search[25 + curDif] + 1;
-                        searchArrs[25 + tmpDif][1] = searchArrs[25 + curDif][1].clone();
-                        searchArrs[25 + tmpDif][1][i]--;
-                        searchArrs[25 + tmpDif][0] = searchArrs[25 + curDif][0].clone();
+                    if (Math.abs(tmpDif) <= 13 && search[13 + tmpDif] == -1) {
+                        search[13 + tmpDif] = search[13 + curDif] + 1;
+                        searchArrs[13 + tmpDif][1] = searchArrs[13 + curDif][1].clone();
+                        searchArrs[13 + tmpDif][1][i]--;
+                        searchArrs[13 + tmpDif][0] = searchArrs[13 + curDif][0].clone();
+                        searchArrs[13 + tmpDif][2] = searchArrs[13 + curDif][2].clone();
                         queue.add(tmpDif);
                     }
                 }
             }
-        }
-        for (int i = 0; i < 51; i++) {
-            searchArrsUsed[i] = usedDifs;
-            if (search[i] != -1) {
-                queue.add(i - 25);
-            }
-        }
-        while (!queue.isEmpty()) {
-            curDif = queue.poll();
             for (int i = 0; i < 6; i++) {
-                if (searchArrsUsed[25 + curDif][i] > 0) {
+                if (searchArrs[13 + curDif][2][i] > 0) {
                     tmpDif = curDif + 2 * (i + 1) * sign;
-                    if (Math.abs(tmpDif) <= 25 && (search[25 + tmpDif] == -1 || search[25 + tmpDif] > search[25 + curDif] - 1)) {
-                        search[25 + tmpDif] = search[25 + curDif] - 1;
-                        searchArrsUsed[25 + tmpDif] = searchArrsUsed[25 + curDif].clone();
-                        searchArrsUsed[25 + tmpDif][i]--;
+                    if (Math.abs(tmpDif) <= 13 && (search[13 + tmpDif] == -1 || search[13 + tmpDif] > search[13 + curDif] - 1)) {
+                        search[13 + tmpDif] = search[13 + curDif] - 1;
+                        searchArrs[13 + tmpDif][0] = searchArrs[13 + curDif][0].clone();
+                        searchArrs[13 + tmpDif][1] = searchArrs[13 + curDif][1].clone();
+                        searchArrs[13 + tmpDif][2] = searchArrs[13 + curDif][2].clone();
+                        searchArrs[13 + tmpDif][2][i]--;
                         queue.add(tmpDif);
                     }
                 }
@@ -115,12 +110,12 @@ public class AlgEx {
         }
         minFlips = Integer.MAX_VALUE;
         for (int i = 0; i <= 13; i++) {
-            if (search[25 + i] != -1 || search[25 - i] != -1) {
-                if (search[25 + i] != -1) {
-                    minFlips = search[25 + i];
+            if (search[13 + i] != -1 || search[13 - i] != -1) {
+                if (search[13 + i] != -1) {
+                    minFlips = search[13 + i];
                 }
-                if (search[25 - i] != -1) {
-                    minFlips = Math.min(minFlips, search[25 - i]);
+                if (search[13 - i] != -1) {
+                    minFlips = Math.min(minFlips, search[13 - i]);
                 }
                 break;
             }
