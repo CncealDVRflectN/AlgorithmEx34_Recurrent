@@ -1,6 +1,6 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.util.*;
 
 public class AlgEx {
@@ -14,18 +14,16 @@ public class AlgEx {
     }
 
     private static void readFileAndFillDifs() throws Exception {
-        BufferedReader reader = new BufferedReader(new FileReader("in.txt"));
+        FastReader reader = new FastReader("in.txt", 256);
         int tmpDif;
-        String[] nums;
 
-        dominoNum = Integer.parseInt(reader.readLine());
+        dominoNum = reader.readNextInt();
         difSum = 0;
         positiveDifs = new int[6];
         negativeDifs = new int[6];
 
         for (int i = 0; i < dominoNum; i++) {
-            while ((nums = reader.readLine().split(" ")).length != 2) ;
-            tmpDif = Integer.parseInt(nums[0]) - Integer.parseInt(nums[1]);
+            tmpDif = reader.readNextInt() - reader.readNextInt();
             difSum += tmpDif;
             if (tmpDif > 0) {
                 positiveDifs[tmpDif - 1]++;
@@ -33,12 +31,10 @@ public class AlgEx {
                 negativeDifs[-tmpDif - 1]++;
             }
         }
-
-        reader.close();
     }
 
     public static void main(String[] args) throws Exception {
-        FileWriter writer = new FileWriter("out.txt");
+        FastWriter writer = new FastWriter("out.txt", 8);
         int minFlips = 0;
         int tmpDif;
         int sign;
@@ -50,10 +46,10 @@ public class AlgEx {
         Queue<Integer> queue = new ArrayDeque<>();
 
         Arrays.fill(search, -1);
+
         readFileAndFillDifs();
         if (isSimple()) {
-            writer.write("0");
-            writer.close();
+            writer.writeInt(0);
             return;
         }
 
@@ -127,7 +123,87 @@ public class AlgEx {
             }
         }
 
-        writer.write(minFlips + "");
-        writer.close();
+        writer.writeInt(minFlips);
+    }
+
+    private static class FastReader {
+        FileChannel channel;
+        ByteBuffer buffer;
+        int charsRead;
+
+        FastReader(String fileName, int bufferByteSize) throws IOException {
+            buffer = ByteBuffer.allocateDirect(bufferByteSize);
+            channel = new FileInputStream(fileName).getChannel();
+            buffer.clear();
+            charsRead = channel.read(buffer);
+            buffer.flip();
+        }
+
+        public int readNextInt() throws IOException {
+            int num = -1;
+            int result = 0;
+
+            while (num < 0 || num > 9) {
+                if (!buffer.hasRemaining()) {
+                    buffer.clear();
+                    charsRead = channel.read(buffer);
+                    if (charsRead == -1) {
+                        break;
+                    }
+                    buffer.flip();
+                }
+                num = buffer.get() - '0';
+            }
+            result += num;
+
+            while (num >= 0 && num <= 9) {
+                if (!buffer.hasRemaining()) {
+                    buffer.clear();
+                    charsRead = channel.read(buffer);
+                    if (charsRead == -1) {
+                        break;
+                    }
+                    buffer.flip();
+                }
+                num = buffer.get() - '0';
+                if (num >= 0 && num <= 9) {
+                    result *= 10;
+                    result += num;
+                }
+            }
+
+            return result;
+        }
+    }
+
+    private static class FastWriter {
+        FileChannel channel;
+        ByteBuffer buffer;
+
+        FastWriter(String fileName, int bufferByteSize) throws IOException {
+            buffer = ByteBuffer.allocateDirect(bufferByteSize);
+            channel = new FileOutputStream(fileName).getChannel();
+            buffer.clear();
+        }
+
+        public void writeInt(int num) throws IOException {
+            byte[] buf = new byte[8];
+            int index = -1;
+
+            do {
+                buf[++index] = (byte)('0' + num % 10);
+                num /= 10;
+            } while (num != 0);
+
+            buffer.clear();
+            while (index >= 0) {
+                buffer.put(buf[index--]);
+            }
+            buffer.flip();
+
+            while (buffer.hasRemaining()) {
+                channel.write(buffer);
+            }
+        }
     }
 }
