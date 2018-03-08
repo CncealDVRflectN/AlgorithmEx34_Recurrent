@@ -84,6 +84,8 @@ int main() {
     int tmpDif = 0;
     int sign = 0;
     int curDif = 0;
+    int curIndex;
+    int nextIndex;
     int *usedDifs = (int *) calloc(6, sizeof(int));
     int *search = (int *) calloc(27, sizeof(int));
     int *curArr;
@@ -124,56 +126,61 @@ int main() {
     }
 
     indexQueue.push(difSum);
-    search[13 + difSum] = minFlips;
-    cloneArray(searchArrs[13 + difSum][0], positiveDifs, 6);
-    cloneArray(searchArrs[13 + difSum][1], negativeDifs, 6);
-    cloneArray(searchArrs[13 + difSum][2], usedDifs, 6);
+    curIndex = 13 + difSum;
+    search[curIndex] = minFlips;
+    cloneArray(searchArrs[curIndex][0], positiveDifs, 6);
+    cloneArray(searchArrs[curIndex][1], negativeDifs, 6);
+    cloneArray(searchArrs[curIndex][2], usedDifs, 6);
 
     while(!indexQueue.empty())
     {
         curDif = indexQueue.front();
         indexQueue.pop();
+        curIndex = 13 + curDif;
 
         for (int i = 0; i < 6; i++)
         {
-            if (searchArrs[13 + curDif][0][i] > 0)
+            if (searchArrs[curIndex][0][i] > 0)
             {
                 tmpDif = curDif - 2 * (i + 1);
-                if (abs(tmpDif) <= 13 && search[13 + tmpDif] == -1)
+                nextIndex = 13 + tmpDif;
+                if (abs(tmpDif) <= 13 && search[nextIndex] == -1)
                 {
-                    search[13 + tmpDif] = search[13 + curDif] + 1;
-                    cloneArray(searchArrs[13 + tmpDif][0], searchArrs[13 + curDif][0], 6);
-                    searchArrs[13 + tmpDif][0][i]--;
-                    cloneArray(searchArrs[13 + tmpDif][1], searchArrs[13 + curDif][1], 6);
-                    cloneArray(searchArrs[13 + tmpDif][2], searchArrs[13 + curDif][2], 6);
+                    search[nextIndex] = search[curIndex] + 1;
+                    cloneArray(searchArrs[nextIndex][0], searchArrs[curIndex][0], 6);
+                    cloneArray(searchArrs[nextIndex][1], searchArrs[curIndex][1], 6);
+                    cloneArray(searchArrs[nextIndex][2], searchArrs[curIndex][2], 6);
+                    searchArrs[nextIndex][0][i]--;
                     indexQueue.push(tmpDif);
                 }
             }
 
-            if (searchArrs[13 + curDif][1][i] > 0)
+            if (searchArrs[curIndex][1][i] > 0)
             {
                 tmpDif = curDif + 2 * (i + 1);
-                if (abs(tmpDif) <= 13 && search[13 + tmpDif] == -1)
+                nextIndex = 13 + tmpDif;
+                if (abs(tmpDif) <= 13 && search[nextIndex] == -1)
                 {
-                    search[13 + tmpDif] = search[13 + curDif] + 1;
-                    cloneArray(searchArrs[13 + tmpDif][1], searchArrs[13 + curDif][1], 6);
-                    searchArrs[13 + tmpDif][1][i]--;
-                    cloneArray(searchArrs[13 + tmpDif][0], searchArrs[13 + curDif][0], 6);
-                    cloneArray(searchArrs[13 + tmpDif][2], searchArrs[13 + curDif][2], 6);
+                    search[nextIndex] = search[curIndex] + 1;
+                    cloneArray(searchArrs[nextIndex][0], searchArrs[curIndex][0], 6);
+                    cloneArray(searchArrs[nextIndex][1], searchArrs[curIndex][1], 6);
+                    cloneArray(searchArrs[nextIndex][2], searchArrs[curIndex][2], 6);
+                    searchArrs[nextIndex][1][i]--;
                     indexQueue.push(tmpDif);
                 }
             }
 
-            if (searchArrs[13 + curDif][2][i] > 0)
+            if (searchArrs[curIndex][2][i] > 0)
             {
                 tmpDif = curDif + 2 * (i + 1) * sign;
-                if (abs(tmpDif) <= 13 && (search[13 + tmpDif] == -1 || search[13 + tmpDif] > search[13 + curDif] - 1))
+                nextIndex = 13 + tmpDif;
+                if (abs(tmpDif) <= 13 && (search[nextIndex] == -1 || search[nextIndex] > search[curIndex] - 1))
                 {
-                    search[13 + tmpDif] = search[13 + curDif] - 1;
-                    cloneArray(searchArrs[13 + tmpDif][0], searchArrs[13 + curDif][0], 6);
-                    cloneArray(searchArrs[13 + tmpDif][1], searchArrs[13 + curDif][1], 6);
-                    cloneArray(searchArrs[13 + tmpDif][2], searchArrs[13 + curDif][2], 6);
-                    searchArrs[13 + tmpDif][2][i]--;
+                    search[nextIndex] = search[curIndex] - 1;
+                    cloneArray(searchArrs[nextIndex][0], searchArrs[curIndex][0], 6);
+                    cloneArray(searchArrs[nextIndex][1], searchArrs[curIndex][1], 6);
+                    cloneArray(searchArrs[nextIndex][2], searchArrs[curIndex][2], 6);
+                    searchArrs[nextIndex][2][i]--;
                     indexQueue.push(tmpDif);
                 }
             }

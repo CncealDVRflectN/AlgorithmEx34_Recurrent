@@ -1,5 +1,6 @@
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.*;
 
@@ -14,7 +15,7 @@ public class AlgEx {
     }
 
     private static void readFileAndFillDifs() throws Exception {
-        FastReader reader = new FastReader("in.txt", 256);
+        FastReader reader = new FastReader("in.txt");
         int tmpDif;
 
         dominoNum = reader.readNextInt();
@@ -39,9 +40,11 @@ public class AlgEx {
         int tmpDif;
         int sign;
         int curDif;
+        int curIndex;
+        int nextIndex;
         int[] usedDifs = new int[6];
         int[] search = new int[27];
-        int[][][] searchArrs = new int[27][3][];
+        int[][][] searchArrs = new int[27][3][6];
         int[] curArr;
         Queue<Integer> queue = new ArrayDeque<>();
 
@@ -64,46 +67,52 @@ public class AlgEx {
         }
 
         queue.add(difSum);
-        search[13 + difSum] = minFlips;
-        searchArrs[13 + difSum][0] = positiveDifs.clone();
-        searchArrs[13 + difSum][1] = negativeDifs.clone();
-        searchArrs[13 + difSum][2] = usedDifs.clone();
+
+        curIndex = 13 + difSum;
+        search[curIndex] = minFlips;
+        System.arraycopy(positiveDifs, 0, searchArrs[curIndex][0], 0, 6);
+        System.arraycopy(negativeDifs, 0, searchArrs[curIndex][1], 0, 6);
+        System.arraycopy(usedDifs, 0, searchArrs[curIndex][2], 0, 6);
 
         while (!queue.isEmpty()) {
             curDif = queue.poll();
+            curIndex = 13 + curDif;
             for (int i = 0; i < 6; i++) {
-                if (searchArrs[13 + curDif][0][i] > 0) {
+                if (searchArrs[curIndex][0][i] > 0) {
                     tmpDif = curDif - 2 * (i + 1);
-                    if (Math.abs(tmpDif) <= 13 && search[13 + tmpDif] == -1) {
-                        search[13 + tmpDif] = search[13 + curDif] + 1;
-                        searchArrs[13 + tmpDif][0] = searchArrs[13 + curDif][0].clone();
-                        searchArrs[13 + tmpDif][0][i]--;
-                        searchArrs[13 + tmpDif][1] = searchArrs[13 + curDif][1].clone();
-                        searchArrs[13 + tmpDif][2] = searchArrs[13 + curDif][2].clone();
+                    nextIndex = 13 + tmpDif;
+                    if (Math.abs(tmpDif) <= 13 && search[nextIndex] == -1) {
+                        search[nextIndex] = search[curIndex] + 1;
+                        System.arraycopy(searchArrs[curIndex][0], 0, searchArrs[nextIndex][0], 0, 6);
+                        System.arraycopy(searchArrs[curIndex][1], 0, searchArrs[nextIndex][1], 0, 6);
+                        System.arraycopy(searchArrs[curIndex][2], 0, searchArrs[nextIndex][2], 0, 6);
+                        searchArrs[nextIndex][0][i]--;
                         queue.add(tmpDif);
                     }
                 }
 
-                if (searchArrs[13 + curDif][1][i] > 0) {
+                if (searchArrs[curIndex][1][i] > 0) {
                     tmpDif = curDif + 2 * (i + 1);
-                    if (Math.abs(tmpDif) <= 13 && search[13 + tmpDif] == -1) {
-                        search[13 + tmpDif] = search[13 + curDif] + 1;
-                        searchArrs[13 + tmpDif][1] = searchArrs[13 + curDif][1].clone();
-                        searchArrs[13 + tmpDif][1][i]--;
-                        searchArrs[13 + tmpDif][0] = searchArrs[13 + curDif][0].clone();
-                        searchArrs[13 + tmpDif][2] = searchArrs[13 + curDif][2].clone();
+                    nextIndex = 13 + tmpDif;
+                    if (Math.abs(tmpDif) <= 13 && search[nextIndex] == -1) {
+                        search[nextIndex] = search[curIndex] + 1;
+                        System.arraycopy(searchArrs[curIndex][0], 0, searchArrs[nextIndex][0], 0, 6);
+                        System.arraycopy(searchArrs[curIndex][1], 0, searchArrs[nextIndex][1], 0, 6);
+                        System.arraycopy(searchArrs[curIndex][2], 0, searchArrs[nextIndex][2], 0, 6);
+                        searchArrs[nextIndex][1][i]--;
                         queue.add(tmpDif);
                     }
                 }
 
-                if (searchArrs[13 + curDif][2][i] > 0) {
+                if (searchArrs[curIndex][2][i] > 0) {
                     tmpDif = curDif + 2 * (i + 1) * sign;
-                    if (Math.abs(tmpDif) <= 13 && (search[13 + tmpDif] == -1 || search[13 + tmpDif] > search[13 + curDif] - 1)) {
-                        search[13 + tmpDif] = search[13 + curDif] - 1;
-                        searchArrs[13 + tmpDif][0] = searchArrs[13 + curDif][0].clone();
-                        searchArrs[13 + tmpDif][1] = searchArrs[13 + curDif][1].clone();
-                        searchArrs[13 + tmpDif][2] = searchArrs[13 + curDif][2].clone();
-                        searchArrs[13 + tmpDif][2][i]--;
+                    nextIndex = 13 + tmpDif;
+                    if (Math.abs(tmpDif) <= 13 && (search[nextIndex] == -1 || search[nextIndex] > search[curIndex] - 1)) {
+                        search[nextIndex] = search[curIndex] - 1;
+                        System.arraycopy(searchArrs[curIndex][0], 0, searchArrs[nextIndex][0], 0, 6);
+                        System.arraycopy(searchArrs[curIndex][1], 0, searchArrs[nextIndex][1], 0, 6);
+                        System.arraycopy(searchArrs[curIndex][2], 0, searchArrs[nextIndex][2], 0, 6);
+                        searchArrs[nextIndex][2][i]--;
                         queue.add(tmpDif);
                     }
                 }
@@ -128,15 +137,11 @@ public class AlgEx {
 
     private static class FastReader {
         FileChannel channel;
-        ByteBuffer buffer;
-        int charsRead;
+        MappedByteBuffer buffer;
 
-        FastReader(String fileName, int bufferByteSize) throws IOException {
-            buffer = ByteBuffer.allocateDirect(bufferByteSize);
+        FastReader(String fileName) throws IOException {
             channel = new FileInputStream(fileName).getChannel();
-            buffer.clear();
-            charsRead = channel.read(buffer);
-            buffer.flip();
+            buffer = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
         }
 
         public int readNextInt() throws IOException {
@@ -145,12 +150,7 @@ public class AlgEx {
 
             while (num < 0 || num > 9) {
                 if (!buffer.hasRemaining()) {
-                    buffer.clear();
-                    charsRead = channel.read(buffer);
-                    if (charsRead == -1) {
-                        break;
-                    }
-                    buffer.flip();
+                    break;
                 }
                 num = buffer.get() - '0';
             }
@@ -158,12 +158,7 @@ public class AlgEx {
 
             while (num >= 0 && num <= 9) {
                 if (!buffer.hasRemaining()) {
-                    buffer.clear();
-                    charsRead = channel.read(buffer);
-                    if (charsRead == -1) {
-                        break;
-                    }
-                    buffer.flip();
+                    break;
                 }
                 num = buffer.get() - '0';
                 if (num >= 0 && num <= 9) {
@@ -173,6 +168,10 @@ public class AlgEx {
             }
 
             return result;
+        }
+
+        public void close() throws IOException {
+            channel.close();
         }
     }
 
@@ -204,6 +203,10 @@ public class AlgEx {
             while (buffer.hasRemaining()) {
                 channel.write(buffer);
             }
+        }
+
+        public void close() throws IOException {
+            channel.close();
         }
     }
 }
